@@ -27,6 +27,8 @@ const App = () => {
 
     }
     catch (err) {
+      console.log(err)
+      console.log(err.response)
       alert("server error")
       setstatus(false)
     }

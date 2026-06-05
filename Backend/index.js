@@ -44,7 +44,13 @@ app.post("/sendmail", async (req, res) => {
     try {
         const { msg, email } = req.body
 
+        console.log("Request received")
+        console.log("Emails:", email)
+
         for (let i = 0; i < email.length; i++) {
+
+            console.log("Sending to:", email[i])
+
             await transporter.sendMail({
                 from: process.env.EMAIL_USER,
                 to: email[i],
@@ -55,15 +61,19 @@ app.post("/sendmail", async (req, res) => {
             console.log("Email sent to:", email[i])
         }
 
-        // Save campaign details in MongoDB
+        console.log("Saving to MongoDB")
+
         await Mail.create({
             message: msg,
             totalEmails: email.length
         })
 
+        console.log("Completed")
+
         res.send(true)
     }
     catch (err) {
+        console.log("ERROR:")
         console.log(err)
         res.send(false)
     }
