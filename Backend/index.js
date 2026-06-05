@@ -1,0 +1,74 @@
+const express = require("express")
+const cors = require("cors")
+const nodemailer = require("nodemailer")
+const mongoose = require("mongoose")
+require("dotenv").config()
+
+const app = express()
+
+app.use(express.json())
+app.use(cors())
+
+// MongoDB Connection
+mongoose.connect(process.env.MONGO_URI)
+.then(() => {
+    console.log("MongoDB Connected")
+})
+.catch((err) => {
+    console.log(err)
+})
+
+// Schema
+const MailSchema = new mongoose.Schema({
+    message: String,
+    totalEmails: Number,
+    sentAt: {
+        type: Date,
+        default: Date.now
+    }
+})
+
+const Mail = mongoose.model("Mail", MailSchema)
+
+// Nodemailer Transporter
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+})
+
+// Send Mail Route
+app.post("/sendmail", async (req, res) => {
+    try {
+        const { msg, email } = req.body
+
+        for (let i = 0; i < email.length; i++) {
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: email[i],
+                subject: "Testing Mail",
+                text: msg
+            })
+
+            console.log("Email sent to:", email[i])
+        }
+
+        // Save campaign details in MongoDB
+        await Mail.create({
+            message: msg,
+            totalEmails: email.length
+        })
+
+        res.send(true)
+    }
+    catch (err) {
+        console.log(err)
+        res.send(false)
+    }
+})
+
+app.listen(process.env.PORT, () => {
+    console.log(`Server running on port ${process.env.PORT}`)
+})
