@@ -8,7 +8,13 @@ const App = () => {
   const func = async () => {
     try {
       setstatus(true)
-      const res = await axios.post("http://localhost:3000/sendmail", { msg: msg ,email:emailList})
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/sendmail`,
+        {
+          msg: msg,
+          email: emailList
+        }
+      )
 
       if (res.data === true) {
         alert("send successfully")
