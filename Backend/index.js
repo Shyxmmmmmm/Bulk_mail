@@ -11,12 +11,12 @@ app.use(cors())
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-    console.log("MongoDB Connected")
-})
-.catch((err) => {
-    console.log(err)
-})
+    .then(() => {
+        console.log("MongoDB Connected")
+    })
+    .catch((err) => {
+        console.log(err)
+    })
 
 // Schema
 const MailSchema = new mongoose.Schema({
@@ -36,7 +36,10 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000
 })
 
 // Send Mail Route
@@ -44,12 +47,13 @@ app.post("/sendmail", async (req, res) => {
     try {
         const { msg, email } = req.body
 
-        console.log("Request received")
+        console.log("========== NEW REQUEST ==========")
+        console.log("Message:", msg)
         console.log("Emails:", email)
 
         for (let i = 0; i < email.length; i++) {
 
-            console.log("Sending to:", email[i])
+            console.log("Before sendMail:", email[i])
 
             await transporter.sendMail({
                 from: process.env.EMAIL_USER,
@@ -58,23 +62,25 @@ app.post("/sendmail", async (req, res) => {
                 text: msg
             })
 
-            console.log("Email sent to:", email[i])
+            console.log("After sendMail:", email[i])
         }
 
-        console.log("Saving to MongoDB")
+        console.log("Before Mongo Save")
 
         await Mail.create({
             message: msg,
             totalEmails: email.length
         })
 
-        console.log("Completed")
+        console.log("After Mongo Save")
 
         res.send(true)
-    }
-    catch (err) {
-        console.log("ERROR:")
+
+    } catch (err) {
+
+        console.log("========== ERROR ==========")
         console.log(err)
+
         res.send(false)
     }
 })
