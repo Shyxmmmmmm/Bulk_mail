@@ -86,6 +86,16 @@ app.post("/sendmail", async (req, res) => {
     }
 })
 
+app.get("/testmail", async (req, res) => {
+    try {
+        await transporter.verify()
+        res.send("SMTP OK")
+    } catch (err) {
+        console.log(err)
+        res.send(err.message)
+    }
+})
+
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`)
 })
